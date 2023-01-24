@@ -4,9 +4,13 @@ import telebot
 
 from dotenv import load_dotenv
 
-from src.KeyboardLayouts.InlineKeyboards.AppFuncs import app_funcs_keyboard, funcs, func_audio_work
-from src.KeyboardLayouts.InlineKeyboards.AudioSourceKeyboard import audio_sources_keyboard, audio_sources
-from src.KeyboardLayouts.ReplyKeyboards.CommandsKeyboard import starting_keyboard
+from src.BotHandlers.CallbackHandlers import callback_from_waited_user_handler, callback_func_choose_handler, \
+    callback_audio_source_handler, callback_video_source_handler
+from src.BotHandlers.MessageHandlers import message_from_waited_user_handler, message_start_work_handler, \
+    question_message_handler
+from src.KeyboardLayouts.InlineKeyboards.AppFuncs import funcs
+from src.KeyboardLayouts.InlineKeyboards.AudioSourceKeyboard import audio_sources
+from src.KeyboardLayouts.InlineKeyboards.VideoSourceKeyboard import video_sources
 from src.classes.UserSourcesInput import user_sources_input
 
 load_dotenv()
@@ -16,67 +20,34 @@ token = os.environ.get("BOT_TOKEN")
 bot = telebot.TeleBot(token)
 
 
-# Edit message on function selection callback
-@bot.callback_query_handler(func=lambda callback: callback.data in funcs.keys() and
-                                                  not user_sources_input.is_wait_for_user_input(
-                                                      callback.message.chat.id
-                                                  ))
-def choose_func(callback):
-    new_message = ''
-    new_keyboard = ''
-
-    if callback.data == func_audio_work:
-        new_message = 'Choose audio source'
-        new_keyboard = audio_sources_keyboard()
-
-    # Edit message for chosen function
-    bot.edit_message_text(
-        new_message,
-        callback.message.chat.id,
-        callback.message.message_id,
-        reply_markup=new_keyboard
-    )
-
-
-# Edit message on audio source selection callback
-@bot.callback_query_handler(func=lambda callback: callback.data in audio_sources.keys() and
-                                                  not user_sources_input.is_wait_for_user_input(
-                                                      callback.message.chat.id
-                                                  ))
-def choose_func(callback):
-    user_sources_input.add_user_input_waiter(callback.message.chat.id, callback.data)
-
-    # Delete Keyboard
-    bot.edit_message_reply_markup(callback.message.chat.id,
-                                  callback.message.message_id,
-                                  reply_markup=None)
-
-    # Edit message for chosen function
-    bot.edit_message_text(
-        'You have chosen ' + audio_sources[callback.data],
-        callback.message.chat.id,
-        callback.message.message_id
-    )
-
-
-# Answer on "Start work" message
-@bot.message_handler(func=lambda msg: str(msg.text) == "Start work" and
-                                      not user_sources_input.is_wait_for_user_input(msg.chat.id))
-def start_work(message):
-    bot.send_message(message.chat.id, "Choose function", reply_markup=app_funcs_keyboard())
-
-
-# Default answer for other messages
-@bot.message_handler(func=lambda msg: str(msg.text) != "Start work")
-def echo_all(message):
+# Common message handler
+# In this handler bot defines what type of massage it received and defines its behaviour
+@bot.message_handler(func=lambda msg: True)
+def messages_handler(message):
     if user_sources_input.is_wait_for_user_input(message.chat.id):
-        bot.send_message(
-            message.chat.id,
-            ', '.join(user_sources_input.usersInputWaiter.get(message.chat.id))
-        )
-        return
+        return message_from_waited_user_handler(bot, message)
 
-    bot.reply_to(message, "Do you wanna start working?", reply_markup=starting_keyboard())
+    if message.text == "Start work":
+        return message_start_work_handler(bot, message)
+    else:
+        return question_message_handler(bot, message)
+
+
+# Common callback handler
+# In this handler bot defines what type of callback it received and defines its behaviour
+@bot.callback_query_handler(func=lambda callback: True)
+def callback_handler(callback):
+    if user_sources_input.is_wait_for_user_input(callback.message.chat.id):
+        return callback_from_waited_user_handler(bot, callback)
+
+    if callback.data in funcs.keys():
+        return callback_func_choose_handler(bot, callback)
+
+    if callback.data in audio_sources.keys():
+        return callback_audio_source_handler(bot, callback)
+
+    if callback.data in video_sources.keys():
+        return callback_video_source_handler(bot, callback)
 
 
 bot.infinity_polling()
