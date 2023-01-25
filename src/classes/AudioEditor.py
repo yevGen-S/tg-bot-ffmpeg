@@ -11,9 +11,9 @@ import ffmpeg
 IR_studio = 'studio_1.wav'
 
 class AudioEditor:
-    def __init__(self, path):
-        self.stream = ffmpeg.input(path)
-        self.path = path
+    def __init__(self, file_name):
+        self.path = fr'../input_audios/{file_name}'
+        self.stream = ffmpeg.input(self.path)
 
     def slow_down(self, coefficient):
         self.change_speed(-coefficient)
@@ -23,30 +23,30 @@ class AudioEditor:
         self.change_speed(coefficient)
         return self
 
-    def change_speed(self, coefficient):
-        self.stream = self.stream.filter('asetrate', int(self.get_audio_frequency() * (1 + coefficient)))
-
     def reverb(self, dry=2, wet=2):
         impulse_response = ffmpeg.input(rf'../impulse_responses/{IR_studio}')
         self.stream = ffmpeg.filter([self.stream, impulse_response], 'afir', dry=dry, wet=wet)
         return self
 
-    #async
-    def save(self, path):
-        self.stream.output(path).global_args('-y').run()
-
-    def get_audio_frequency(self):
-        return int(ffmpeg.probe(self.path)['streams'][0].get('sample_rate'))
-
-    def bassboost(self, gain=15, frequency=100 ):
+    def bassboost(self, gain=15, frequency=100):
         self.stream = self.stream.filter('bass', gain=gain, frequency=frequency)
         return self
 
+    def change_pitch(self, pitch_scale):
+        self.stream = self.stream.filter('rubberband', pitch=pitch_scale)
+        return self
 
-# in_name = 'jma.mp3'
-# out_name = 'jma_slowed_bassboosted.mp3'
-#
-# input = rf'C:\Users\andre\source\repos\Semestr 5\asm\audio\source\{in_name}'
-# output = rf'C:\Users\andre\source\repos\Semestr 5\asm\audio\out\{out_name}'
-#
-# audio = AudioEditor(input).slow_down(0.15).bassboost().save(output)
+    #should async?
+    def save(self, output_file_name, audio_format='mp3'):
+        self.stream.output(rf'../processed/{output_file_name}.{audio_format}').global_args('-y').run()
+
+    #private methods
+    def get_audio_frequency(self):
+        return int(ffmpeg.probe(self.path)['streams'][0].get('sample_rate'))
+
+    def change_speed(self, coefficient):
+        self.stream = self.stream.filter('asetrate', int(self.get_audio_frequency() * (1 + coefficient)))
+
+
+
+AudioEditor('jma.mp3').slow_down(0.2).change_pitch(0.8).save('jma_slowed_pitched')
