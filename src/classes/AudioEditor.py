@@ -1,3 +1,6 @@
+import glob
+import time
+
 import ffmpeg
 """
     Class for editing audio. Takes path to audio, applies filters and output new edited audio file.
@@ -10,9 +13,10 @@ import ffmpeg
 # IR_mausoleum = 'mausoleum.wav'
 IR_studio = 'studio_1.wav'
 
+
 class AudioEditor:
     def __init__(self, file_name):
-        self.path = fr'../input_audios/{file_name}'
+        self.path = rf'.\input_audios\{file_name}'
         self.stream = ffmpeg.input(self.path)
 
     def slow_down(self, coefficient):
@@ -24,11 +28,11 @@ class AudioEditor:
         return self
 
     def reverb(self, dry=2, wet=2):
-        impulse_response = ffmpeg.input(rf'../impulse_responses/{IR_studio}')
+        impulse_response = ffmpeg.input(rf'.\impulse_responses\{IR_studio}')
         self.stream = ffmpeg.filter([self.stream, impulse_response], 'afir', dry=dry, wet=wet)
         return self
 
-    def bassboost(self, gain=15, frequency=100):
+    def bass_boost(self, gain=15, frequency=100):
         self.stream = self.stream.filter('bass', gain=gain, frequency=frequency)
         return self
 
@@ -36,17 +40,20 @@ class AudioEditor:
         self.stream = self.stream.filter('rubberband', pitch=pitch_scale)
         return self
 
-    #should async?
+    # should async?
     def save(self, output_file_name, audio_format='mp3'):
-        self.stream.output(rf'../processed/{output_file_name}.{audio_format}').global_args('-y').run()
+        self.stream.output(rf'.\processed\{output_file_name}.{audio_format}').global_args('-y').run()
 
-    #private methods
+    # private methods
     def get_audio_frequency(self):
         return int(ffmpeg.probe(self.path)['streams'][0].get('sample_rate'))
 
     def change_speed(self, coefficient):
-        self.stream = self.stream.filter('asetrate', int(self.get_audio_frequency() * (1 + coefficient)))
+        self.stream = self.stream.filter('asetrate', int(self.get_audio_frequency() * coefficient))
+        return self
 
 
-
-AudioEditor('jma.mp3').slow_down(0.2).change_pitch(0.8).save('jma_slowed_pitched')
+# start_time = time.time()
+# AudioEditor('1342722628.mp3').reverb().save('jma_slowed_pitched')
+# print(time.time() - start_time)
+# print(glob.glob(r".\input_audios\443426428.*")[0][glob.glob(r".\input_audios\443426428.*")[0].rindex('\\') + 1:])
