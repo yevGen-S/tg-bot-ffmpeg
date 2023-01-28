@@ -5,11 +5,11 @@ funcs_in_row = 1
 '''
     Functions dictionary: "callback data": "function name in tg"
 '''
-func_audio_work = 'audio_work'
-func_video_work = 'video_work'
+app_func_audio_work = 'audio_work'
+app_func_video_work = 'video_work'
 funcs = {
-    func_audio_work: 'Work with audio',
-    func_video_work: 'Work with video'
+    app_func_audio_work: 'Work with audio',
+    app_func_video_work: 'Work with video'
 }
 
 

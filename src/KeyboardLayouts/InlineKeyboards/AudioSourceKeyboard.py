@@ -5,11 +5,11 @@ sources_in_row = 1
 """
     Audio sources dictionary: "callback data": "audio_source"
 """
-from_audio_file = 'from_audio_file'
-from_youtube_audio = 'from_youtube_audio'
+audio_source_from_file = 'from_audio_file'
+audio_source_from_youtube = 'from_youtube_audio'
 audio_sources = {
-    from_audio_file: 'Load as audio file',
-    from_youtube_audio: 'Load as youtube link'
+    audio_source_from_file: 'Load as audio file',
+    audio_source_from_youtube: 'Load as youtube link'
 }
 
 
