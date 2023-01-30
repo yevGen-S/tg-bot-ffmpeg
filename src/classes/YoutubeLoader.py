@@ -29,7 +29,7 @@ class YoutubeLoader:
 
         if type == 'video':
             ydl_opts = {
-                'format': 'bestvideo',
+                'format': 'worstvideo',
                 'outtmpl': '../input_' + type + 's/' + user_id + '.mp4',
                 'noplaylist': True,
                 'progress_hooks': [finish_loading_hook],
