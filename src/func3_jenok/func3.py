@@ -21,6 +21,3 @@ def merge_video_and_audio(video_name, audio_name, output_name):
     except:
         err_msg = "Something go wrong! Video wasn't merged with audio"
         return err_msg
-
-
-merge_video_and_audio('test.mp4', 'gadza.mp3', 'test-gadza.mp4')

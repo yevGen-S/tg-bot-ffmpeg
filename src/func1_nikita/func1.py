@@ -15,6 +15,3 @@ def merge_audio_and_looped_video(video_name, audio_name, output_name):
 
     print(command)
     os.system(command)
-
-
-merge_audio_and_looped_video('test123', 'gadza', 'gadza_looped')
