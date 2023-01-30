@@ -4,7 +4,7 @@ import urllib.request
 from dotenv import load_dotenv
 from telebot import TeleBot
 
-from src.KeyboardLayouts.InlineKeyboards.AudioFuncsKeyboard import audio_funcs_keyboard
+from src.KeyboardLayouts.InlineKeyboards.AudioFuncsKeyboard import audio_funcs_keyboard, end_selecting_audio_func
 
 load_dotenv()
 
@@ -40,11 +40,13 @@ class UserFilesDownloader:
     # It passed to urlretrieve
     def user_file_downloader_callback(self, current_blocks, block_size, file_size):
         if current_blocks * block_size >= file_size:
+            markup = audio_funcs_keyboard()
+            markup.keyboard.pop()
             self.bot.edit_message_text(
                 "File downloaded. Choose function you want to execute",
                 self.current_user_id,
                 self.current_message_id,
-                reply_markup=audio_funcs_keyboard()
+                reply_markup=markup
             )
             user_files_downloaders.__delitem__(self.current_user_id)
 

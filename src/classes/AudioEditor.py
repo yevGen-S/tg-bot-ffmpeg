@@ -1,7 +1,5 @@
-import glob
-import time
-
 import ffmpeg
+
 """
     Class for editing audio. Takes path to audio, applies filters and output new edited audio file.
 """
@@ -19,17 +17,13 @@ class AudioEditor:
         self.path = rf'.\input_audios\{file_name}'
         self.stream = ffmpeg.input(self.path)
 
-    def slow_down(self, coefficient):
-        self.change_speed(-coefficient)
+    def change_speed(self, coefficient):
+        self.stream = self.stream.filter('asetrate', int(self.get_audio_frequency() * coefficient))
         return self
 
-    def speed_up(self, coefficient):
-        self.change_speed(coefficient)
-        return self
-
-    def reverb(self, dry=2, wet=2):
+    def reverb(self, wet=2):
         impulse_response = ffmpeg.input(rf'.\impulse_responses\{IR_studio}')
-        self.stream = ffmpeg.filter([self.stream, impulse_response], 'afir', dry=dry, wet=wet)
+        self.stream = ffmpeg.filter([self.stream, impulse_response], 'afir', dry=10-wet, wet=wet)
         return self
 
     def bass_boost(self, gain=15, frequency=100):
@@ -47,10 +41,6 @@ class AudioEditor:
     # private methods
     def get_audio_frequency(self):
         return int(ffmpeg.probe(self.path)['streams'][0].get('sample_rate'))
-
-    def change_speed(self, coefficient):
-        self.stream = self.stream.filter('asetrate', int(self.get_audio_frequency() * coefficient))
-        return self
 
 
 # start_time = time.time()
