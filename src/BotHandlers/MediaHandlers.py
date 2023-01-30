@@ -21,4 +21,3 @@ def audio_file_handler(bot: TeleBot, message):
         bot.get_file(message.audio.file_id).file_path,
         message.audio.file_name[index_before_format + 1:]
     )
-    print("downloaded for: ", message.chat.id)

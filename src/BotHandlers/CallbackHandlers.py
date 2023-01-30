@@ -1,8 +1,14 @@
+import os
+
+from telebot import TeleBot
+
 from src.KeyboardLayouts.InlineKeyboards.AppFuncs import app_func_audio_work, app_func_video_work
-from src.KeyboardLayouts.InlineKeyboards.AudioFuncsKeyboard import audio_speed_func
+from src.KeyboardLayouts.InlineKeyboards.AudioFuncsKeyboard import audio_speed_func, end_selecting_audio_func, \
+    audio_pitch_func, audio_reverb_func
 from src.KeyboardLayouts.InlineKeyboards.AudioSourceKeyboard import audio_sources_keyboard, audio_sources
 from src.KeyboardLayouts.InlineKeyboards.VideoSourceKeyboard import video_sources_keyboard, video_sources
 from src.classes.UserInputWaiter import user_input_waiter
+from src.classes.UsersFunctionsDict import users_functions_dict
 
 
 def callback_from_waited_user_handler(bot, callback):
@@ -69,7 +75,7 @@ def callback_video_source_handler(bot, callback):
 
 
 # Handler for audio function selection via inline keyboard
-def callback_audio_func_handler(bot, callback):
+def callback_audio_func_handler(bot: TeleBot, callback):
     # Delete Keyboard
     bot.edit_message_reply_markup(callback.message.chat.id,
                                   callback.message.message_id,
@@ -77,13 +83,58 @@ def callback_audio_func_handler(bot, callback):
 
     if callback.data == audio_speed_func:
         user_input_waiter.add_user_input_waiter(callback.message.chat.id, callback.data)
+        text = """Enter speed ratio. It must be from 0 to 3 (excludes 0).
+Passing 1 does not change audio speed.
+(format: [digits].[digits])"""
         return bot.edit_message_text(
-                   'Enter speed ratio. It must be from 0 to 3 (excludes 0). %0A' +
-                   'Passing 1 does not change audio speed. %0A' +
-                   '(format: [digits].[digits])',
+                   text,
                    callback.message.chat.id,
                    callback.message.message_id
                )
+
+    if callback.data == audio_pitch_func:
+        user_input_waiter.add_user_input_waiter(callback.message.chat.id, callback.data)
+        text = """Enter pitch ratio. It must be from 0 to 3 (excludes 0).
+Passing 1 does not change audio pitch.
+(format: [digits].[digits])"""
+        return bot.edit_message_text(
+            text,
+            callback.message.chat.id,
+            callback.message.message_id
+        )
+
+    if callback.data == audio_reverb_func:
+        user_input_waiter.add_user_input_waiter(callback.message.chat.id, callback.data)
+        text = """Enter reverb ratio. It must be from 0 to 100 (in percents).
+Passing 0 does not change audio.
+(format: [digits])"""
+        return bot.edit_message_text(
+            text,
+            callback.message.chat.id,
+            callback.message.message_id
+        )
+
+    if callback.data == end_selecting_audio_func:
+        bot.edit_message_text(
+            "Okay! Processing your file...",
+            callback.message.chat.id,
+            callback.message.message_id
+        )
+        file_full_name = users_functions_dict.apply_user_audio_funcs(callback.message.chat.id)
+        file_stream = open(rf"./processed/{file_full_name}", "rb")
+        bot.edit_message_text(
+            "That's it! Enjoy your music!",
+            callback.message.chat.id,
+            callback.message.message_id
+        )
+        bot.send_audio(
+            callback.message.chat.id,
+            audio=file_stream
+        )
+        file_stream.close()
+        os.remove(rf".\input_audios\{file_full_name}")
+        os.remove(rf".\processed\{file_full_name}")
+        return
 
     # Edit message for chosen function
     bot.edit_message_text(

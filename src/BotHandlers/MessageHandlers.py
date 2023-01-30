@@ -6,11 +6,32 @@ from telebot import TeleBot
 
 from src.BotHandlers.MediaHandlers import audio_file_handler
 from src.KeyboardLayouts.InlineKeyboards.AppFuncs import app_funcs_keyboard
-from src.KeyboardLayouts.InlineKeyboards.AudioFuncsKeyboard import audio_speed_func
+from src.KeyboardLayouts.InlineKeyboards.AudioFuncsKeyboard import audio_speed_func, audio_funcs_keyboard, \
+    audio_pitch_func, audio_reverb_func
 from src.KeyboardLayouts.InlineKeyboards.AudioSourceKeyboard import audio_source_from_file
 from src.KeyboardLayouts.ReplyKeyboards.CommandsKeyboard import starting_keyboard
 from src.classes.AudioEditor import AudioEditor
 from src.classes.UserInputWaiter import user_input_waiter
+from src.classes.UsersFunctionsDict import users_functions_dict
+
+
+def get_audio_funcs_markup_for_user(user_id):
+    markup = audio_funcs_keyboard()
+    if users_functions_dict.audio_funcs_dict.keys().__contains__(user_id):
+        user_audio_funcs = []
+        for func in users_functions_dict.audio_funcs_dict[user_id]:
+            user_audio_funcs.append(next(iter(func.keys())))
+
+        to_delete_buttons = []
+        for row in markup.keyboard:
+            button = row[0]
+            if user_audio_funcs.__contains__(button.callback_data):
+                to_delete_buttons.append(row)
+
+        for to_delete_button in to_delete_buttons:
+            markup.keyboard.remove(to_delete_button)
+
+    return markup
 
 
 # Handler for any message from user from whom the bot is waiting for the source
@@ -19,43 +40,48 @@ def message_from_waited_user_handler(bot: TeleBot, message):
         return audio_file_handler(bot, message)
 
     if user_input_waiter.is_waiting_for_input(message.chat.id, audio_speed_func):
-        if -1.0 < float(message.text) <= 5.0:
+        if 0 < float(message.text) <= 3.0:
             user_input_waiter.end_waiting_for_user_input(
                 message.chat.id,
                 audio_speed_func
             )
-            new_message = bot.send_message(
+            users_functions_dict.add_user_audio_func(message.chat.id, audio_speed_func, float(message.text))
+            return bot.send_message(
                 message.chat.id,
-                "Okay! Processing your file..."
+                "Choose function you want to execute",
+                reply_markup=get_audio_funcs_markup_for_user(message.chat.id)
             )
 
-            # th = threading.Thread(target=dura, args=(bot, message, new_message))
-            # th.start()
-            # print("processing file for user: ", message.chat.id)
+    if user_input_waiter.is_waiting_for_input(message.chat.id, audio_pitch_func):
+        if 0 < float(message.text) <= 3.0:
+            user_input_waiter.end_waiting_for_user_input(
+                message.chat.id,
+                audio_pitch_func
+            )
+            users_functions_dict.add_user_audio_func(message.chat.id, audio_pitch_func, float(message.text))
+            return bot.send_message(
+                message.chat.id,
+                "Choose function you want to execute",
+                reply_markup=get_audio_funcs_markup_for_user(message.chat.id)
+            )
 
-            file_path = glob.glob(rf".\input_audios\{message.chat.id}.*")[0]
-            file_name = file_path[file_path.rindex('\\') + 1:]
-            file_format = file_name[file_name.rindex('.') + 1:]
-            audio_editor = AudioEditor(file_name)
-            audio_editor.change_speed(float(message.text)).save(f"{message.chat.id}", file_format)
-            bot.edit_message_text("Done! Have fun!", new_message.chat.id, new_message.id)
-            bot.send_audio(message.chat.id, audio=open(rf"./processed/{message.chat.id}.{file_format}", "rb"))
-            return
+    if user_input_waiter.is_waiting_for_input(message.chat.id, audio_reverb_func):
+        if 0 < int(message.text) <= 100:
+            user_input_waiter.end_waiting_for_user_input(
+                message.chat.id,
+                audio_reverb_func
+            )
+            users_functions_dict.add_user_audio_func(message.chat.id, audio_reverb_func, float(message.text))
+            return bot.send_message(
+                message.chat.id,
+                "Choose function you want to execute",
+                reply_markup=get_audio_funcs_markup_for_user(message.chat.id)
+            )
 
     bot.send_message(
         message.chat.id,
         ', '.join(user_input_waiter.usersInputWaiter.get(message.chat.id))
     )
-
-
-def dura(bot, message, new_message):
-    file_path = glob.glob(rf".\input_audios\{message.chat.id}.*")[0]
-    file_name = file_path[file_path.rindex('\\') + 1:]
-    file_format = file_name[file_name.rindex('.') + 1:]
-    audio_editor = AudioEditor(file_name)
-    audio_editor.change_speed(float(message.text)).save(f"{message.chat.id}", file_format)
-    bot.edit_message_text("Done! Have fun!", new_message.chat.id, new_message.id)
-    bot.send_audio(message.chat.id, audio=open(rf"./processed/{message.chat.id}.{file_format}", "rb"))
 
 
 # Handler for work starting message "Start work"
