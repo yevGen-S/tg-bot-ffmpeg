@@ -25,6 +25,7 @@ bot = telebot.TeleBot(token)
 # In this handler bot defines what type of massage it received and defines its behaviour
 @bot.message_handler(func=lambda msg: True, content_types=['text', 'audio', 'video', 'document'])
 def messages_handler(message):
+    print(user_input_waiter.usersInputWaiter)
     if user_input_waiter.is_wait_for_user_input(message.chat.id):
         return message_from_waited_user_handler(bot, message)
 
@@ -38,6 +39,7 @@ def messages_handler(message):
 # In this handler bot defines what type of callback it received and defines its behaviour
 @bot.callback_query_handler(func=lambda callback: True)
 def callback_handler(callback):
+    print(user_input_waiter.usersInputWaiter)
     if callback.data in funcs.keys():
         return callback_func_choose_handler(bot, callback)
 

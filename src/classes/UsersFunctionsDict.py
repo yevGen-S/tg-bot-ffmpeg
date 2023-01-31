@@ -43,7 +43,7 @@ class UsersFunctionsDict:
                 audio_editor.reverb(func[func_name] / 10)
 
             if func_name == audio_bass_boost_func:
-                audio_editor.bass_boost()
+                audio_editor.bass_boost(gain=func[func_name])
 
         audio_editor.save(file_name, file_format)
         self.audio_funcs_dict.pop(user_id)
