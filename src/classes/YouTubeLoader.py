@@ -30,7 +30,7 @@ class YouTubeLoader:
 
     def load_user_file(self):
         with youtube_dl.YoutubeDL(self.options) as ydl:
-            ydl.extract_info(self.url)
+            ydl.download([self.url])
 
     def finish_loading_hook(self, download_obj):
         if download_obj['status'] == 'finished':
