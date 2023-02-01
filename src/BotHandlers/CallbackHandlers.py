@@ -9,7 +9,7 @@ from src.KeyboardLayouts.InlineKeyboards.AudioSourceKeyboard import audio_source
     audio_source_from_file, audio_source_from_youtube
 from src.KeyboardLayouts.InlineKeyboards.VideoFuncsKeyboard import video_loop_on_music_func, video_overlap_with_music
 from src.KeyboardLayouts.InlineKeyboards.VideoSourceKeyboard import video_sources_keyboard, video_sources, \
-    video_source_from_file
+    video_source_from_file, video_source_from_youtube
 from src.classes.UserInputWaiter import user_input_waiter
 from src.classes.UsersFunctionsDict import users_functions_dict
 
@@ -76,6 +76,16 @@ def callback_video_source_handler(bot, callback):
     if callback.data == video_source_from_file:
         text = """Okay! Now, send me your video file.
 But please note, the size of the video file cannot exceed 20 MB."""
+        # Edit message for chosen function
+        bot.edit_message_text(
+            text,
+            callback.message.chat.id,
+            callback.message.message_id,
+            reply_markup=None
+        )
+
+    if callback.data == video_source_from_youtube:
+        text = "Okay! Now, send me YouTube link (only full links or shorten by YouTube)."
         # Edit message for chosen function
         bot.edit_message_text(
             text,

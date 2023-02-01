@@ -2,12 +2,12 @@ from telebot import TeleBot
 
 from src.BotHandlers.CallbackHandlers import audio_source_for_video
 from src.BotHandlers.MediaHandlers import audio_file_handler, youtube_link_audio_handler, video_file_handler, \
-    audio_file_for_video_handler, youtube_link_audio_for_video_handler
+    audio_file_for_video_handler, youtube_link_audio_for_video_handler, youtube_link_video_handler
 from src.KeyboardLayouts.InlineKeyboards.AppFuncs import app_funcs_keyboard
 from src.KeyboardLayouts.InlineKeyboards.AudioFuncsKeyboard import audio_speed_func, audio_funcs_keyboard, \
     audio_pitch_func, audio_reverb_func, audio_bass_boost_func
 from src.KeyboardLayouts.InlineKeyboards.AudioSourceKeyboard import audio_source_from_file, audio_source_from_youtube
-from src.KeyboardLayouts.InlineKeyboards.VideoSourceKeyboard import video_source_from_file
+from src.KeyboardLayouts.InlineKeyboards.VideoSourceKeyboard import video_source_from_file, video_source_from_youtube
 from src.KeyboardLayouts.ReplyKeyboards.CommandsKeyboard import starting_keyboard
 from src.classes.AudioEditor import AudioEditor
 from src.classes.UserInputWaiter import user_input_waiter
@@ -49,6 +49,9 @@ def message_from_waited_user_handler(bot: TeleBot, message):
 
     if user_input_waiter.is_waiting_for_input(message.chat.id, audio_source_from_youtube):
         return youtube_link_audio_handler(bot, message)
+
+    if user_input_waiter.is_waiting_for_input(message.chat.id, video_source_from_youtube):
+        return youtube_link_video_handler(bot, message)
 
     if user_input_waiter.is_waiting_for_input(message.chat.id, audio_speed_func):
         if 0 < float(message.text) <= 3.0:
