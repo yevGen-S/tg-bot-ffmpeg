@@ -1,10 +1,8 @@
-import glob
-import os
-import threading
-
 from telebot import TeleBot
 
-from src.BotHandlers.MediaHandlers import audio_file_handler, youtube_link_audio_handler, video_file_handler
+from src.BotHandlers.CallbackHandlers import audio_source_for_video
+from src.BotHandlers.MediaHandlers import audio_file_handler, youtube_link_audio_handler, video_file_handler, \
+    audio_file_for_video_handler, youtube_link_audio_for_video_handler
 from src.KeyboardLayouts.InlineKeyboards.AppFuncs import app_funcs_keyboard
 from src.KeyboardLayouts.InlineKeyboards.AudioFuncsKeyboard import audio_speed_func, audio_funcs_keyboard, \
     audio_pitch_func, audio_reverb_func, audio_bass_boost_func
@@ -37,6 +35,12 @@ def get_audio_funcs_markup_for_user(user_id):
 
 # Handler for any message from user from whom the bot is waiting for the source
 def message_from_waited_user_handler(bot: TeleBot, message):
+    if user_input_waiter.is_waiting_for_input(message.chat.id, audio_source_for_video):
+        if message.audio:
+            return audio_file_for_video_handler(bot, message)
+        else:
+            return youtube_link_audio_for_video_handler(bot, message)
+
     if message.audio and user_input_waiter.is_waiting_for_input(message.chat.id, audio_source_from_file):
         return audio_file_handler(bot, message)
 

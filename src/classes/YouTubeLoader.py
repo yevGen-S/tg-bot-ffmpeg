@@ -12,7 +12,7 @@ from src.classes.UserInputWaiter import user_input_waiter
 
 
 class YouTubeLoader:
-    def __init__(self, bot: TeleBot, user_id, message_id, download_type, url):
+    def __init__(self, bot: TeleBot, user_id, message_id, download_type, url, callback=None):
         self.bot = bot
         self.user_id = user_id
         self.message_id = message_id
@@ -23,7 +23,7 @@ class YouTubeLoader:
                         if download_type == 'audio' else
                         rf'..\input_videos\{self.user_id}.mp4'),
             'noplaylist': True,
-            'progress_hooks': [self.finish_loading_hook],
+            'progress_hooks': [callback if callback is not None else self.finish_loading_hook],
         }
 
     def load_user_file(self):

@@ -26,21 +26,23 @@ class UserFilesDownloader:
         self.download_type = None
 
     # Download audio file
-    def download_user_audio_file(self, file_path, file_format):
+    def download_user_audio_file(self, file_path, file_format, callback=None):
         self.download_type = 'audio'
+        download_callback = callback if callback is not None else self.user_file_downloader_callback
         urllib.request.urlretrieve(
             rf'https://api.telegram.org/file/bot{token}/{file_path}',
             rf'input_audios\{self.user_id}.{file_format}',
-            reporthook=self.user_file_downloader_callback
+            reporthook=download_callback
         )
 
     # Download video file
-    def download_user_video_file(self, file_path, file_format):
+    def download_user_video_file(self, file_path, file_format, callback=None):
         self.download_type = 'video'
+        download_callback = callback if callback is not None else self.user_file_downloader_callback
         urllib.request.urlretrieve(
             rf'https://api.telegram.org/file/bot{token}/{file_path}',
             rf'input_videos\{self.user_id}.{file_format}',
-            reporthook=self.user_file_downloader_callback
+            reporthook=download_callback
         )
 
     # Download user file

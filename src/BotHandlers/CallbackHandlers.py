@@ -7,10 +7,14 @@ from src.KeyboardLayouts.InlineKeyboards.AudioFuncsKeyboard import audio_speed_f
     audio_pitch_func, audio_reverb_func, audio_bass_boost_func
 from src.KeyboardLayouts.InlineKeyboards.AudioSourceKeyboard import audio_sources_keyboard, audio_sources, \
     audio_source_from_file, audio_source_from_youtube
+from src.KeyboardLayouts.InlineKeyboards.VideoFuncsKeyboard import video_loop_on_music_func, video_overlap_with_music
 from src.KeyboardLayouts.InlineKeyboards.VideoSourceKeyboard import video_sources_keyboard, video_sources, \
     video_source_from_file
 from src.classes.UserInputWaiter import user_input_waiter
 from src.classes.UsersFunctionsDict import users_functions_dict
+
+
+audio_source_for_video = 'audio_source_for_video'
 
 
 def callback_from_waited_user_handler(bot, callback):
@@ -160,3 +164,22 @@ Passing 0 does not change audio.
         callback.message.chat.id,
         callback.message.message_id
     )
+
+
+# Handler for video function selection via inline keyboard
+def callback_video_func_handler(bot: TeleBot, callback):
+    # Delete Keyboard
+    bot.edit_message_reply_markup(callback.message.chat.id,
+                                  callback.message.message_id,
+                                  reply_markup=None)
+
+    users_functions_dict.add_user_video_func(callback.message.chat.id, callback.data)
+
+    if (callback.data == video_loop_on_music_func) or (callback.data == video_overlap_with_music):
+        user_input_waiter.add_user_input_waiter(callback.message.chat.id, audio_source_for_video)
+        text = "Okay! Now send me audio file or youtube link..."
+        return bot.edit_message_text(
+            text,
+            callback.message.chat.id,
+            callback.message.message_id
+        )
