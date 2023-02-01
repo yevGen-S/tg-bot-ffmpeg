@@ -17,6 +17,7 @@ def merge_video_and_audio(video_name, audio_name, output_name):
                    .concat(load_video(video_name), load_audio(audio_name), v=1, a=1)
                    .output(f'../processed/{output_name}')
                    )
+
         command.run()
     except:
         err_msg = "Something go wrong! Video wasn't merged with audio"
