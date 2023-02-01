@@ -1,5 +1,6 @@
 import glob
 import os
+import time
 
 from telebot import TeleBot
 
@@ -103,8 +104,9 @@ def _audio_file_download_handler(current_blocks, block_size, file_size, bot, use
         bot.send_video(user_id, video=video)
         video.close()
         os.remove(output_file_path)
-        os.remove(audio_file_path)
         os.remove(video_file_path)
+        users_functions_dict.video_funcs_dict.pop(user_id)
+        user_input_waiter.usersInputWaiter.pop(user_id)
 
 
 # Handler for YouTube link message
@@ -122,7 +124,7 @@ def youtube_link_audio_for_video_handler(bot: TeleBot, message):
         new_message.message_id,
         'audio',
         message.text,
-        lambda download_obj:  _finish_loading_hook(
+        lambda download_obj: _finish_loading_hook(
             download_obj,
             bot,
             message.chat.id,
@@ -148,7 +150,11 @@ def _finish_loading_hook(download_obj, bot, user_id, message_id):
         video_file_path = glob.glob(rf".\input_videos\{user_id}.*")[0]
         video_format = video_file_path[video_file_path.rindex('.') + 1:]
         video_editor = VideoEditor(video_format, audio_format, user_id)
-        video_editor.merge_audio_and_looped_video()
+        if next(iter(users_functions_dict.video_funcs_dict.values())) == video_loop_on_music_func:
+            video_editor.merge_audio_and_looped_video()
+        else:
+            video_editor.overlap_audio_and_video()
+
         output_file_path = glob.glob(rf".\processed\{user_id}.*")[0]
         bot.edit_message_text(
             "That's it! Have fun!",
@@ -162,6 +168,8 @@ def _finish_loading_hook(download_obj, bot, user_id, message_id):
         os.remove(output_file_path)
         os.remove(audio_file_path)
         os.remove(video_file_path)
+        users_functions_dict.video_funcs_dict.pop(user_id)
+        user_input_waiter.usersInputWaiter.pop(user_id)
 
 
 # Handler for audio file message
@@ -180,3 +188,17 @@ def video_file_handler(bot: TeleBot, message):
         bot.get_file(message.video.file_id).file_path,
         message.video.file_name[index_before_format + 1:]
     )
+
+
+# Handler for YouTube link message
+def youtube_link_video_handler(bot: TeleBot, message):
+    if (r"youtube.com" not in message.text) and (r"youtu.be" not in message.text):
+        return bot.send_message(
+            message.chat.id,
+            "This is not valid YouTube link"
+        )
+
+    new_message = bot.send_message(message.chat.id, "Got it! Downloading your file...")
+    downloader = YouTubeLoader(bot, message.chat.id, new_message.message_id, 'video', message.text)
+    user_youtube_downloaders[message.chat.id] = downloader
+    downloader.load_user_file()
